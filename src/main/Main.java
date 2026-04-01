@@ -1,7 +1,9 @@
 package main;
 
+import model.Collaborator;
 import model.Task;
 import persistence.DatabaseInitializer;
+import service.TaskFilter;
 import service.TaskService;
 
 import java.util.List;
@@ -28,7 +30,9 @@ public class Main {
             System.out.println("3. Search tasks");
             System.out.println("4. View all tasks");
             System.out.println("5. Export all tasks to CSV");
-            System.out.println("6. Exit");
+            System.out.println("6. Export tasks to iCal");
+            System.out.println("7. List overloaded collaborators");
+            System.out.println("8. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
@@ -62,7 +66,6 @@ public class Main {
                     System.out.println("5. Date range");
 
                     String option = scanner.nextLine();
-
                     List<Task> results = null;
 
                     switch (option) {
@@ -70,22 +73,18 @@ public class Main {
                             System.out.print("Keyword: ");
                             results = service.search(scanner.nextLine());
                             break;
-
                         case "2":
-                            System.out.print("Status (OPEN/COMPLETED): ");
+                            System.out.print("Status (OPEN/COMPLETED/CANCELLED): ");
                             results = service.searchByStatus(scanner.nextLine());
                             break;
-
                         case "3":
                             System.out.print("Priority (LOW/MEDIUM/HIGH): ");
                             results = service.searchByPriority(scanner.nextLine());
                             break;
-
                         case "4":
                             System.out.print("Date (YYYY-MM-DD): ");
                             results = service.searchByDate(scanner.nextLine());
                             break;
-
                         case "5":
                             System.out.print("Start date: ");
                             String start = scanner.nextLine();
@@ -132,16 +131,103 @@ public class Main {
                     break;
 
                 case "6":
+                    handleIcalExport(scanner, service);
+                    pause(scanner);
+                    break;
+
+                case "7":
+                    List<Collaborator> collaborators = service.getOverloadedCollaborators();
+                    if (collaborators.isEmpty()) {
+                        System.out.println("No overloaded collaborators were found.");
+                    } else {
+                        System.out.println("Overloaded collaborators (more than " + service.getOverloadThreshold() + " open tasks):");
+                        for (Collaborator collaborator : collaborators) {
+                            System.out.println("- " + collaborator.getName() + " | Open tasks: " + collaborator.getOpenTaskCount());
+                        }
+                    }
+                    pause(scanner);
+                    break;
+
+                case "8":
                     running = false;
                     System.out.println("Goodbye.");
                     break;
 
                 default:
-                    System.out.println("Invalid option. Please choose a number from 1 to 6.");
+                    System.out.println("Invalid option. Please choose a number from 1 to 8.");
                     pause(scanner);
             }
         }
 
         scanner.close();
+    }
+
+    private static void handleIcalExport(Scanner scanner, TaskService service) {
+        System.out.println("\niCal export options:");
+        System.out.println("1. Export a single task");
+        System.out.println("2. Export all tasks in a project");
+        System.out.println("3. Export a filtered list of tasks");
+        System.out.print("Choose an option: ");
+
+        String option = scanner.nextLine().trim();
+
+        System.out.print("Enter export file name or path (.ics): ");
+        String exportPath = scanner.nextLine().trim();
+        if (exportPath.isEmpty()) {
+            System.out.println("Export cancelled. Returning to menu.");
+            return;
+        }
+
+        switch (option) {
+            case "1":
+                System.out.print("Task ID: ");
+                String taskIdInput = scanner.nextLine().trim();
+                try {
+                    service.exportSingleTaskToICal(Integer.parseInt(taskIdInput), exportPath);
+                } catch (NumberFormatException e) {
+                    System.out.println("Task ID must be a number.");
+                }
+                break;
+
+            case "2":
+                System.out.print("Project name: ");
+                String projectName = scanner.nextLine().trim();
+                if (projectName.isEmpty()) {
+                    System.out.println("Project name is required.");
+                    return;
+                }
+                service.exportProjectTasksToICal(projectName, exportPath);
+                break;
+
+            case "3":
+                TaskFilter filter = buildFilterFromInput(scanner, service);
+                if (filter != null) {
+                    service.exportFilteredTasksToICal(filter, exportPath);
+                }
+                break;
+
+            default:
+                System.out.println("Invalid iCal export option.");
+        }
+    }
+
+    private static TaskFilter buildFilterFromInput(Scanner scanner, TaskService service) {
+        try {
+            System.out.print("Keyword (optional): ");
+            String keyword = scanner.nextLine();
+            System.out.print("Status (OPEN/COMPLETED/CANCELLED, optional): ");
+            String status = scanner.nextLine();
+            System.out.print("Priority (LOW/MEDIUM/HIGH, optional): ");
+            String priority = scanner.nextLine();
+            System.out.print("Start date (YYYY-MM-DD, optional): ");
+            String startDate = scanner.nextLine();
+            System.out.print("End date (YYYY-MM-DD, optional): ");
+            String endDate = scanner.nextLine();
+
+            return service.buildFilter(keyword, status, priority, startDate, endDate);
+        } catch (Exception e) {
+            System.out.println("The filter values are invalid.");
+            return null;
+        }
     }
 }

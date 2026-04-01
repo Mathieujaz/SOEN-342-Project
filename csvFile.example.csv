@@ -1,4 +1,11 @@
-title,description,status,priority,dueDate
-Do project,Finish report,OPEN,HIGH,2026-03-30
-Meeting,Team sync,OPEN,MEDIUM,2026-03-25
-Submit work,Upload files,COMPLETED,HIGH,2026-03-20
+title,description,status,priority,dueDate,projectName,collaboratorName,subtasks
+Build ICS,Create calendar export,OPEN,HIGH,2026-04-05,SOEN342,Joseph,[ ] Draft gateway; [x] Review spec
+Demo prep,Prepare iteration demo slides,OPEN,MEDIUM,2026-04-07,SOEN342,Joseph,[ ] Slides; [ ] Rehearsal
+Write report,Finish iteration report,OPEN,HIGH,2026-04-08,SOEN342,Joseph,[ ] Intro; [ ] Conclusion
+Fix bugs,Resolve import/export issues,OPEN,HIGH,2026-04-06,SOEN342,Joseph,[ ] CSV parsing; [ ] Error handling
+Team meeting,Weekly sync with team,OPEN,MEDIUM,2026-04-03,SOEN342,Joseph,[ ] Agenda
+Code cleanup,Refactor service layer,OPEN,LOW,2026-04-09,SOEN342,Joseph,[ ] Remove duplication
+Presentation,Prepare final presentation,OPEN,HIGH,2026-04-10,SOEN342,Bob,[ ] Slides; [ ] Script
+Research,Look up iCalendar format,COMPLETED,MEDIUM,2026-04-01,SOEN342,Charlie,[x] Read docs
+Backlog item,This task has no due date,OPEN,LOW,,SOEN342,Joseph,
+Personal task,Standalone task not in a project,OPEN,MEDIUM,2026-04-12,,Dana,[ ] Review notes

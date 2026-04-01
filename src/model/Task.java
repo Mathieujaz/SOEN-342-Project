@@ -1,5 +1,9 @@
 package model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class Task {
     private int id;
     private String title;
@@ -7,22 +11,34 @@ public class Task {
     private TaskStatus status;
     private Priority priority;
     private String dueDate;
+    private String projectName;
+    private String collaboratorName;
+    private List<Subtask> subtasks;
 
     public Task(String title, String description, TaskStatus status, Priority priority, String dueDate) {
-        this.title = title;
-        this.description = description;
-        this.status = status;
-        this.priority = priority;
-        this.dueDate = dueDate;
+        this(0, title, description, status, priority, dueDate, "", "", new ArrayList<>());
     }
 
     public Task(int id, String title, String description, TaskStatus status, Priority priority, String dueDate) {
+        this(id, title, description, status, priority, dueDate, "", "", new ArrayList<>());
+    }
+
+    public Task(String title, String description, TaskStatus status, Priority priority, String dueDate,
+                String projectName, String collaboratorName, List<Subtask> subtasks) {
+        this(0, title, description, status, priority, dueDate, projectName, collaboratorName, subtasks);
+    }
+
+    public Task(int id, String title, String description, TaskStatus status, Priority priority, String dueDate,
+                String projectName, String collaboratorName, List<Subtask> subtasks) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.status = status;
         this.priority = priority;
         this.dueDate = dueDate;
+        this.projectName = projectName == null ? "" : projectName;
+        this.collaboratorName = collaboratorName == null ? "" : collaboratorName;
+        this.subtasks = subtasks == null ? new ArrayList<>() : new ArrayList<>(subtasks);
     }
 
     public int getId() { return id; }
@@ -31,9 +47,20 @@ public class Task {
     public TaskStatus getStatus() { return status; }
     public Priority getPriority() { return priority; }
     public String getDueDate() { return dueDate; }
+    public String getProjectName() { return projectName; }
+    public String getCollaboratorName() { return collaboratorName; }
+    public List<Subtask> getSubtasks() { return Collections.unmodifiableList(subtasks); }
+
+    public boolean hasDueDate() {
+        return dueDate != null && !dueDate.isBlank();
+    }
 
     @Override
     public String toString() {
-        return id + " | " + title + " | " + status + " | " + priority;
+        String projectPart = projectName.isBlank() ? "No Project" : projectName;
+        String collaboratorPart = collaboratorName.isBlank() ? "Unassigned" : collaboratorName;
+        String dueDatePart = hasDueDate() ? dueDate : "No due date";
+        return id + " | " + title + " | " + status + " | " + priority + " | " + dueDatePart
+                + " | Project: " + projectPart + " | Collaborator: " + collaboratorPart;
     }
 }
