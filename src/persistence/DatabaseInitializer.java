@@ -17,6 +17,7 @@ public class DatabaseInitializer {
                 dueDate TEXT,
                 projectName TEXT DEFAULT '',
                 collaboratorName TEXT DEFAULT '',
+                collaboratorCategory TEXT DEFAULT '',
                 subtasks TEXT DEFAULT ''
             );
         """;
@@ -27,6 +28,7 @@ public class DatabaseInitializer {
             stmt.execute(sql);
             addColumnIfMissing(conn, "projectName", "TEXT DEFAULT ''");
             addColumnIfMissing(conn, "collaboratorName", "TEXT DEFAULT ''");
+            addColumnIfMissing(conn, "collaboratorCategory", "TEXT DEFAULT ''");
             addColumnIfMissing(conn, "subtasks", "TEXT DEFAULT ''");
             System.out.println("Database ready.");
 

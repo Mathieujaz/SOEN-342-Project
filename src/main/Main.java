@@ -32,7 +32,8 @@ public class Main {
             System.out.println("5. Export all tasks to CSV");
             System.out.println("6. Export tasks to iCal");
             System.out.println("7. List overloaded collaborators");
-            System.out.println("8. Exit");
+            System.out.println("8. Update collaborator limits");
+            System.out.println("9. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
@@ -140,21 +141,28 @@ public class Main {
                     if (collaborators.isEmpty()) {
                         System.out.println("No overloaded collaborators were found.");
                     } else {
-                        System.out.println("Overloaded collaborators (more than " + service.getOverloadThreshold() + " open tasks):");
+                        System.out.println("Overloaded collaborators:");
                         for (Collaborator collaborator : collaborators) {
-                            System.out.println("- " + collaborator.getName() + " | Open tasks: " + collaborator.getOpenTaskCount());
+                            System.out.println("- " + collaborator.getName() + " | Category: " + collaborator.getCategory()
+                                    + " | Open tasks: " + collaborator.getOpenTaskCount()
+                                    + " | Limit: " + collaborator.getOpenTaskLimit());
                         }
                     }
                     pause(scanner);
                     break;
 
                 case "8":
+                    handleLimitUpdate(scanner, service);
+                    pause(scanner);
+                    break;
+
+                case "9":
                     running = false;
                     System.out.println("Goodbye.");
                     break;
 
                 default:
-                    System.out.println("Invalid option. Please choose a number from 1 to 8.");
+                    System.out.println("Invalid option. Please choose a number from 1 to 9.");
                     pause(scanner);
             }
         }
@@ -208,6 +216,36 @@ public class Main {
 
             default:
                 System.out.println("Invalid iCal export option.");
+        }
+    }
+
+    private static void handleLimitUpdate(Scanner scanner, TaskService service) {
+        System.out.println("Current limits: " + service.getCollaboratorLimitsSummary());
+        System.out.println("1. Update one category limit");
+        System.out.println("2. Reset limits to defaults");
+        System.out.print("Choose an option: ");
+
+        String option = scanner.nextLine().trim();
+
+        try {
+            switch (option) {
+                case "1":
+                    System.out.print("Category (SENIOR/INTERMEDIATE/JUNIOR): ");
+                    String category = scanner.nextLine().trim();
+                    System.out.print("New positive integer limit: ");
+                    int limit = Integer.parseInt(scanner.nextLine().trim());
+                    service.updateCollaboratorLimit(category, limit);
+                    System.out.println("Updated limits: " + service.getCollaboratorLimitsSummary());
+                    break;
+                case "2":
+                    service.resetCollaboratorLimits();
+                    System.out.println("Limits reset. Current limits: " + service.getCollaboratorLimitsSummary());
+                    break;
+                default:
+                    System.out.println("Invalid limit option.");
+            }
+        } catch (Exception e) {
+            System.out.println("Could not update collaborator limits.");
         }
     }
 

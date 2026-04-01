@@ -1,6 +1,7 @@
 package persistence;
 
 import model.Collaborator;
+import model.CollaboratorCategory;
 import model.Priority;
 import model.Subtask;
 import model.Task;
@@ -17,11 +18,19 @@ public class TaskRepository {
             "SELECT id, title, description, status, priority, dueDate, " +
             "COALESCE(projectName, '') AS projectName, " +
             "COALESCE(collaboratorName, '') AS collaboratorName, " +
+            "COALESCE(collaboratorCategory, '') AS collaboratorCategory, " +
             "COALESCE(subtasks, '') AS subtasks FROM tasks";
 
-    public void addTask(Task task) {
-        String sql = "INSERT INTO tasks(title, description, status, priority, dueDate, projectName, collaboratorName, subtasks) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public boolean addTask(Task task) {
+        if (wouldExceedCollaboratorLimit(task)) {
+            CollaboratorCategory category = task.getCollaboratorCategory();
+            System.out.println("Could not assign task to " + task.getCollaboratorName()
+                    + ": " + category + " collaborators are limited to " + category.getOpenTaskLimit() + " open tasks.");
+            return false;
+        }
+
+        String sql = "INSERT INTO tasks(title, description, status, priority, dueDate, projectName, collaboratorName, collaboratorCategory, subtasks) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -33,12 +42,15 @@ public class TaskRepository {
             ps.setString(5, task.getDueDate());
             ps.setString(6, task.getProjectName());
             ps.setString(7, task.getCollaboratorName());
-            ps.setString(8, serializeSubtasks(task.getSubtasks()));
+            ps.setString(8, task.getCollaboratorCategoryName());
+            ps.setString(9, serializeSubtasks(task.getSubtasks()));
 
             ps.executeUpdate();
+            return true;
 
         } catch (Exception e) {
             System.out.println("Could not add the task to the database.");
+            return false;
         }
     }
 
@@ -62,7 +74,7 @@ public class TaskRepository {
 
     public List<Task> searchTasks(String keyword) {
         List<Task> list = new ArrayList<>();
-        String sql = SELECT_ALL_COLUMNS + " WHERE title LIKE ? OR description LIKE ? OR projectName LIKE ? OR collaboratorName LIKE ?";
+        String sql = SELECT_ALL_COLUMNS + " WHERE title LIKE ? OR description LIKE ? OR projectName LIKE ? OR collaboratorName LIKE ? OR collaboratorCategory LIKE ?";
 
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -72,6 +84,7 @@ public class TaskRepository {
             ps.setString(2, k);
             ps.setString(3, k);
             ps.setString(4, k);
+            ps.setString(5, k);
 
             ResultSet rs = ps.executeQuery();
 
@@ -220,30 +233,34 @@ public class TaskRepository {
                 .collect(Collectors.toList());
     }
 
-    public List<Collaborator> getOverloadedCollaborators(int openTaskThreshold) {
+    public List<Collaborator> getOverloadedCollaborators() {
         List<Collaborator> collaborators = new ArrayList<>();
         String sql = """
-                SELECT collaboratorName, COUNT(*) AS openTaskCount
+                SELECT collaboratorName, collaboratorCategory, COUNT(*) AS openTaskCount
                 FROM tasks
                 WHERE collaboratorName IS NOT NULL
                   AND TRIM(collaboratorName) <> ''
+                  AND collaboratorCategory IS NOT NULL
+                  AND TRIM(collaboratorCategory) <> ''
                   AND status = 'OPEN'
-                GROUP BY collaboratorName
-                HAVING COUNT(*) > ?
+                GROUP BY collaboratorName, collaboratorCategory
                 ORDER BY openTaskCount DESC, collaboratorName ASC
                 """;
 
         try (Connection conn = DatabaseManager.connect();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, openTaskThreshold);
-
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                collaborators.add(new Collaborator(
+                CollaboratorCategory category = CollaboratorCategory.fromString(rs.getString("collaboratorCategory"));
+                Collaborator collaborator = new Collaborator(
                         rs.getString("collaboratorName"),
+                        category,
                         rs.getLong("openTaskCount")
-                ));
+                );
+                if (collaborator.isOverloaded()) {
+                    collaborators.add(collaborator);
+                }
             }
         } catch (Exception e) {
             System.out.println("Could not retrieve overloaded collaborators.");
@@ -263,6 +280,41 @@ public class TaskRepository {
         }
     }
 
+    private boolean wouldExceedCollaboratorLimit(Task task) {
+        if (task.getStatus() != TaskStatus.OPEN) {
+            return false;
+        }
+        if (task.getCollaboratorName() == null || task.getCollaboratorName().isBlank()) {
+            return false;
+        }
+        CollaboratorCategory category = task.getCollaboratorCategory();
+        if (category == null) {
+            return false;
+        }
+
+        return countOpenTasksForCollaborator(task.getCollaboratorName(), category) >= category.getOpenTaskLimit();
+    }
+
+    private long countOpenTasksForCollaborator(String collaboratorName, CollaboratorCategory category) {
+        String sql = "SELECT COUNT(*) FROM tasks WHERE collaboratorName = ? AND collaboratorCategory = ? AND status = 'OPEN'";
+
+        try (Connection conn = DatabaseManager.connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, collaboratorName);
+            ps.setString(2, category.name());
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+        } catch (Exception e) {
+            System.out.println("Could not count collaborator tasks.");
+        }
+
+        return 0;
+    }
+
     private Task map(ResultSet rs) throws SQLException {
         return new Task(
                 rs.getInt("id"),
@@ -273,6 +325,7 @@ public class TaskRepository {
                 rs.getString("dueDate"),
                 rs.getString("projectName"),
                 rs.getString("collaboratorName"),
+                CollaboratorCategory.fromString(rs.getString("collaboratorCategory")),
                 parseSubtasks(rs.getString("subtasks"))
         );
     }

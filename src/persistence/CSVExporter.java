@@ -18,7 +18,7 @@ public class CSVExporter {
     public void exportCSV(String path) {
         try (FileWriter w = new FileWriter(path)) {
 
-            w.write("title,description,status,priority,dueDate,projectName,collaboratorName,subtasks\n");
+            w.write("title,description,status,priority,dueDate,projectName,collaboratorName,collaboratorCategory,subtasks\n");
 
             List<Task> tasks = repo.getAllTasks();
 
@@ -30,6 +30,7 @@ public class CSVExporter {
                         csvValue(t.getDueDate()) + "," +
                         csvValue(t.getProjectName()) + "," +
                         csvValue(t.getCollaboratorName()) + "," +
+                        csvValue(t.getCollaboratorCategoryName()) + "," +
                         csvValue(formatSubtasks(t.getSubtasks())) + "\n");
             }
 

@@ -1,6 +1,7 @@
 package service;
 
 import model.Collaborator;
+import model.CollaboratorCategory;
 import model.Priority;
 import model.Task;
 import model.TaskStatus;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaskService {
-    private static final int OVERLOAD_THRESHOLD = 5;
 
     private TaskRepository repo = new TaskRepository();
     private CSVImporter importer = new CSVImporter(repo);
@@ -72,11 +72,27 @@ public class TaskService {
     }
 
     public List<Collaborator> getOverloadedCollaborators() {
-        return repo.getOverloadedCollaborators(OVERLOAD_THRESHOLD);
+        return repo.getOverloadedCollaborators();
     }
 
-    public int getOverloadThreshold() {
-        return OVERLOAD_THRESHOLD;
+    public void updateCollaboratorLimit(String categoryName, int limit) {
+        CollaboratorCategory category = CollaboratorCategory.fromString(categoryName);
+        if (category == null) {
+            throw new IllegalArgumentException("Invalid collaborator category.");
+        }
+        category.setOpenTaskLimit(limit);
+    }
+
+    public void resetCollaboratorLimits() {
+        for (CollaboratorCategory category : CollaboratorCategory.values()) {
+            category.resetOpenTaskLimit();
+        }
+    }
+
+    public String getCollaboratorLimitsSummary() {
+        return "SENIOR=" + CollaboratorCategory.SENIOR.getOpenTaskLimit()
+                + ", INTERMEDIATE=" + CollaboratorCategory.INTERMEDIATE.getOpenTaskLimit()
+                + ", JUNIOR=" + CollaboratorCategory.JUNIOR.getOpenTaskLimit();
     }
 
     public void reset() {
