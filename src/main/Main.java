@@ -457,7 +457,15 @@ public class Main {
             System.out.println("No tasks found.");
             return;
         }
-        tasks.forEach(System.out::println);
+
+        for (Task task : tasks) {
+            System.out.println(task);
+
+            if (!task.getSubtasks().isEmpty()) {
+                System.out.println("   Subtasks:");
+                task.getSubtasks().forEach(subtask -> System.out.println("   - " + subtask));
+            }
+        }
     }
 
     private static String readOrDefault(Scanner scanner, String currentValue) {
@@ -465,3 +473,4 @@ public class Main {
         return value.isBlank() ? currentValue : value.trim();
     }
 }
+
