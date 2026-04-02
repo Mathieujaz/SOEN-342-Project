@@ -1,4 +1,13 @@
-title,description,status,priority,dueDate
-Do project,Finish report,OPEN,HIGH,2026-03-30
-Meeting,Team sync,OPEN,MEDIUM,2026-03-25
-Submit work,Upload files,COMPLETED,HIGH,2026-03-20
+title,description,status,priority,dueDate,projectName,collaboratorName,collaboratorCategory,subtasks
+Senior planning,Review architecture,OPEN,HIGH,2026-04-05,SOEN342,Alice,SENIOR,[ ] Review design; [ ] Approve plan
+Senior sync,Meet with team,OPEN,MEDIUM,2026-04-06,SOEN342,Alice,SENIOR,[ ] Agenda
+Senior overflow,This one should be rejected because Alice is already at limit,OPEN,HIGH,2026-04-07,SOEN342,Alice,SENIOR,[ ] Follow up
+Intermediate task 1,Implement search update,OPEN,HIGH,2026-04-08,SOEN342,Bob,INTERMEDIATE,[ ] Service
+Intermediate task 2,Prepare iteration demo,OPEN,MEDIUM,2026-04-09,SOEN342,Bob,INTERMEDIATE,[ ] Slides
+Intermediate task 3,Write integration notes,OPEN,LOW,2026-04-10,SOEN342,Bob,INTERMEDIATE,[ ] Notes
+Intermediate task 4,Review PRs,OPEN,MEDIUM,2026-04-11,SOEN342,Bob,INTERMEDIATE,[ ] Review
+Intermediate task 5,Fix persistence bugs,OPEN,HIGH,2026-04-12,SOEN342,Bob,INTERMEDIATE,[ ] Debug
+Intermediate overflow,This one should also be rejected at import,OPEN,HIGH,2026-04-13,SOEN342,Bob,INTERMEDIATE,[ ] Retest
+Junior task,Research iCalendar format,COMPLETED,MEDIUM,2026-04-01,SOEN342,Charlie,JUNIOR,[x] Read docs
+Backlog item,This task has no due date,OPEN,LOW,,SOEN342,Dana,JUNIOR,
+Personal task,Standalone task not in a project,OPEN,MEDIUM,2026-04-14,,, ,[ ] Review notes
