@@ -1,10 +1,10 @@
 # SOEN-342-Project
 
-Mathieu Jazrawi  - 40284648
+Mathieu Jazrawi  - 40284648 Mathieujaz
 
-Wendy Mbog       - 40259555
+Wendy Mbog       - 40259555 wenm983
 
-Jennifer Avakian - 40263197
+Jennifer Avakian - 40263197 jenzo2903
 
 
 # Task Management System (Proof of Concept)
