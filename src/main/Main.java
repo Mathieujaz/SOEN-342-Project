@@ -460,6 +460,9 @@ public class Main {
 
         for (Task task : tasks) {
             System.out.println(task);
+            if (task.getDescription() != null && !task.getDescription().isBlank()) {
+                System.out.println("   Description: " + task.getDescription());
+            }
 
             if (!task.getSubtasks().isEmpty()) {
                 System.out.println("   Subtasks:");
